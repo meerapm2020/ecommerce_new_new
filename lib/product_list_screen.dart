@@ -1,12 +1,7 @@
 import 'dart:convert';
-
-import 'package:ecommerce_new_new/cart_provider.dart';
-import 'package:ecommerce_new_new/cart_screen.dart';
-import 'package:ecommerce_new_new/menu_items.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:popover/popover.dart';
-import 'package:provider/provider.dart';
 
 class ProductListScreen extends StatefulWidget {
   @override
@@ -32,21 +27,48 @@ class _ProductListScreenState extends State<ProductListScreen> {
     }
   }
 
+  void showCustomPopover(BuildContext context, GlobalKey key) {
+    final RenderBox renderBox =
+        key.currentContext!.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+
+    showPopover(
+      context: context,
+      bodyBuilder: (context) => Center(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Container(
+          height: 40,
+          color: Colors.deepPurple[300],
+          alignment: Alignment.center,
+          child: Text("Add to Cart"),
+        ),
+        Container(
+          height: 40,
+          color: Colors.deepPurple[200],
+          alignment: Alignment.center,
+          child: Text("Add to Wishlist"),
+        ),
+        Container(
+          height: 50,
+          color: Colors.deepPurple[300],
+          alignment: Alignment.center,
+          child: Text("View Details"),
+        ),
+      ])),
+      direction: PopoverDirection.left,
+      backgroundColor: Colors.deepPurple.shade50,
+      width: 200,
+      height: 150,
+      arrowHeight: 10,
+      arrowWidth: 20,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('E-commerce App'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.shopping_cart),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CartScreen()),
-            ),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text("E-commerce App")),
       body: products.isEmpty
           ? Center(child: CircularProgressIndicator())
           : GridView.builder(
@@ -55,35 +77,25 @@ class _ProductListScreenState extends State<ProductListScreen> {
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final product = products[index];
+                final GlobalKey key = GlobalKey();
+
                 return Card(
                   child: Column(
                     children: [
-                      GestureDetector(
-                          onTap: () {
-                            showPopover(
-                              context: context,
-                              bodyBuilder: (context) => MenuItems(),
-                              width: 250,
-                              height: 150,
-                              backgroundColor: Colors.deepPurple.shade50,
-                              direction: PopoverDirection.bottom,
-                              arrowHeight: 10,
-                              arrowWidth: 20,
-                            );
-                          },
-                          child:
-                              Image.network(product['thumbnail'], height: 250)),
+                      Builder(
+                        builder: (context) {
+                          return IconButton(
+                            key: key,
+                            icon: Image.network(product['thumbnail'],
+                                height: 100),
+                            onPressed: () {
+                              showCustomPopover(context, key);
+                            },
+                          );
+                        },
+                      ),
                       Text(product['title']),
                       Text('\$${product['price']}'),
-                      // ElevatedButton(
-                      //   onPressed: () {
-                      //     Provider.of<CartProvider>(context, listen: false)
-                      //         .addToCart(product);
-                      //     ScaffoldMessenger.of(context).showSnackBar(
-                      //         SnackBar(content: Text("Added to cart")));
-                      //   },
-                      //   child: Text("Add to Cart"),
-                      // ),
                     ],
                   ),
                 );
